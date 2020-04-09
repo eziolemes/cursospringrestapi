@@ -10,6 +10,8 @@ import org.hibernate.annotations.ForeignKey;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+//TODO criar sequence como no model Role
+
 @Entity
 public class Telefone {
 

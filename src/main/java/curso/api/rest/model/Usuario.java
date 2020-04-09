@@ -11,6 +11,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+//TODO criar sequence como no model Role
+
 @Entity
 public class Usuario implements Serializable{
 
