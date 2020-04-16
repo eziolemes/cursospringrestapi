@@ -18,6 +18,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.ForeignKey;
 
+import org.hibernate.validator.constraints.br.CPF;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -41,6 +42,9 @@ public class Usuario implements UserDetails{ // esta interface já tem o Seriali
 	
 	private String nome;
 	
+	@CPF(message= "CPF inválido")
+	private String cpf;
+	
 	@OneToMany(mappedBy = "usuario", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Telefone> telefones = new ArrayList<Telefone>();
 	
@@ -54,6 +58,14 @@ public class Usuario implements UserDetails{ // esta interface já tem o Seriali
 			foreignKey = @ForeignKey (name = "role_fk", value = ConstraintMode.CONSTRAINT)))
 	private List<Role> roles; /*os papeis ou acessos*/
 
+	public void setCpf(String cpf) {
+		this.cpf = cpf;
+	}
+	
+	public String getCpf() {
+		return cpf;
+	}
+	
 	public List<Telefone> getTelefones() {
 		return telefones;
 	}

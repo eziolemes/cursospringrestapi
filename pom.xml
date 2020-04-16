@@ -89,7 +89,7 @@
 			<artifactId>jjwt</artifactId>
 			<version>0.7.0</version>
 		</dependency>
-		
+
 		<!-- Hikari para pool de conexões -->
 		<dependency>
 			<groupId>com.zaxxer</groupId>
