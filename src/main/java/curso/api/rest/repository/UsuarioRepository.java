@@ -15,6 +15,8 @@ public interface UsuarioRepository extends CrudRepository<Usuario, Long>{
 	@Query("select u from Usuario u where u.login = ?1")
 	Usuario findUserByLogin(String login);
 	
-	@Query("select u from Usuario u where u.nome like %?1%")
-	List<Usuario> findUserByNome(String nome);
+	/*Padrão do Spring Data para trazer os dados ignorando o case sentivive
+	 * para melhorar o uso do campo de pesquisa*/
+	//@Query("select u from Usuario u where u.nome like %?1%")
+	List<Usuario> findUserByNomeContainingIgnoreCase(String nome);
 }

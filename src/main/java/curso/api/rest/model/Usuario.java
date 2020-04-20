@@ -56,7 +56,7 @@ public class Usuario implements UserDetails{ // esta interface já tem o Seriali
 	
 			inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", table = "role", unique = false, updatable = false,
 			foreignKey = @ForeignKey (name = "role_fk", value = ConstraintMode.CONSTRAINT)))
-	private List<Role> roles; /*os papeis ou acessos*/
+	private List<Role> roles = new ArrayList<Role>(); /*os papeis ou acessos*/
 
 	public void setCpf(String cpf) {
 		this.cpf = cpf;

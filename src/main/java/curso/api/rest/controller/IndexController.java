@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -72,6 +71,14 @@ public class IndexController {
 		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
 	}
 	
+	@GetMapping(value = "/usuarioPorNome/{nome}", produces = "application/json")
+	public ResponseEntity<List<Usuario>> usuarioPorNome (@PathVariable(value="nome") String nome) {
+		
+		List<Usuario> list = (List<Usuario>) usuarioRepository.findUserByNomeContainingIgnoreCase(nome);
+		
+		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+	}
+	
 	@PostMapping(value = "/", produces = "application/json")
 	public ResponseEntity<Usuario> cadastrar(@RequestBody Usuario usuario) {
 		
@@ -95,7 +102,7 @@ public class IndexController {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
 		}
 		
-		Usuario userTemporario = usuarioRepository.findUserByLogin(usuario.getLogin());
+		Usuario userTemporario = usuarioRepository.findById(usuario.getId()).get();
 		
 		if(!userTemporario.getSenha().equals( usuario.getSenha() )) {
 			String senhaCriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());

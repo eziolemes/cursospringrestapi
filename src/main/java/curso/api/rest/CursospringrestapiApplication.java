@@ -29,7 +29,7 @@ public class CursospringrestapiApplication implements WebMvcConfigurer{ // inter
 
 	public static void main(String[] args) {
 		SpringApplication.run(CursospringrestapiApplication.class, args);
-		//System.out.println(new BCryptPasswordEncoder().encode("123"));
+		System.out.println(new BCryptPasswordEncoder().encode("123"));
 	}
 
 	/*Mapeamento global que refletem em todo o sistema*/
@@ -41,8 +41,12 @@ public class CursospringrestapiApplication implements WebMvcConfigurer{ // inter
 		.allowedOrigins("www.cliente10.com.br", "www.cliente20.com.br");*/
 		//liberando alenas requisições post e get do controller usuario para o clientes específicos
 		
+//		registry.addMapping("/usuario/**")
+//		.allowedMethods("*")
+//		.allowedOrigins("*");
+		
 		registry.addMapping("/usuario/**")
-		.allowedMethods("*")
+		.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 		.allowedOrigins("*");
 		
 	}
