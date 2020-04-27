@@ -3,6 +3,8 @@ package curso.api.rest.controller;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
@@ -80,7 +82,7 @@ public class IndexController {
 	}
 	
 	@PostMapping(value = "/", produces = "application/json")
-	public ResponseEntity<Usuario> cadastrar(@RequestBody Usuario usuario) {
+	public ResponseEntity<Usuario> cadastrar(@Valid @RequestBody Usuario usuario) { //@Valid é para o BeanValidator do CPF
 		
 		for(int pos = 0; pos < usuario.getTelefones().size(); pos ++) {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
@@ -96,7 +98,7 @@ public class IndexController {
 	}
 
 	@PutMapping(value = "/", produces = "application/json")
-	public ResponseEntity<Usuario> atualizar(@RequestBody Usuario usuario) {
+	public ResponseEntity<Usuario> atualizar(@Valid @RequestBody Usuario usuario) { //@Valid é para o BeanValidator do CPF
 		
 		for(int pos = 0; pos < usuario.getTelefones().size(); pos ++) {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
