@@ -7,6 +7,9 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import curso.api.rest.model.Usuario;
+import curso.api.rest.repository.TelefoneRepository;
 import curso.api.rest.repository.UsuarioRepository;
+import curso.api.rest.service.ImplementacaoUserDetailsService;
 
 @RestController /* Aqui define arquitetura REST */
 @RequestMapping(value = "/usuario")
@@ -28,6 +33,12 @@ public class IndexController {
 	
 	@Autowired /* Injeção de dependência */
 	private UsuarioRepository usuarioRepository;
+	
+	@Autowired /* Injeção de dependência */
+	private TelefoneRepository telefoneRepository;
+	
+	@Autowired
+	private ImplementacaoUserDetailsService implementacaoUserDetailsService;
 	
 	/*Serviço RESTful*/
 	@GetMapping(value = "v1/{id}", produces = "application/json")
@@ -66,19 +77,64 @@ public class IndexController {
 	}
 	
 	@GetMapping(value = "/", produces = "application/json")
-	public ResponseEntity<List<Usuario>> usuarios () {
+	public ResponseEntity<Page<Usuario>> usuarios () {
+//		public ResponseEntity<List<Usuario>> usuarios () {
 		
-		List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
+		//criar paginação para performance, do registro 0 listando 5
+		PageRequest page = PageRequest.of(0, 5, Sort.by("nome"));
 		
-		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+		Page<Usuario> list = usuarioRepository.findAll(page);
+		
+		//listagem normal com todos os registros
+//		List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
+		
+//		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/page/{pagina}", produces = "application/json")
+	public ResponseEntity<Page<Usuario>> usuarioPagina (@PathVariable("pagina") int pagina) {
+		
+		//criar paginação para performance, do registro 0 listando 5
+		PageRequest page = PageRequest.of(pagina, 5, Sort.by("nome"));
+		
+		Page<Usuario> list = usuarioRepository.findAll(page);
+		
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
 	}
 	
 	@GetMapping(value = "/usuarioPorNome/{nome}", produces = "application/json")
-	public ResponseEntity<List<Usuario>> usuarioPorNome (@PathVariable(value="nome") String nome) {
+	public ResponseEntity<Page<Usuario>> usuarioPorNome (@PathVariable(value="nome") String nome) {
 		
-		List<Usuario> list = (List<Usuario>) usuarioRepository.findUserByNomeContainingIgnoreCase(nome);
+		PageRequest page = null;
+		Page<Usuario> list = null;
 		
-		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+		if(nome == null || (nome != null && nome.trim().isEmpty()) || nome.equalsIgnoreCase("undefined")) {
+			page = PageRequest.of(0, 5, Sort.by("nome"));
+			list = usuarioRepository.findAll(page);
+		} else {
+			page = PageRequest.of(0, 5, Sort.by("nome"));
+			list = (Page<Usuario>) usuarioRepository.findUserByNamePageContainingIgnoreCase(nome, page);
+		}
+		
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/usuarioPorNome/{nome}/page/{page}", produces = "application/json")
+	public ResponseEntity<Page<Usuario>> usuarioPorNomePage (@PathVariable(value="nome") String nome, @PathVariable("page") int page) {
+		
+		PageRequest pageRequest = null;
+		Page<Usuario> list = null;
+		
+		if(nome == null || (nome != null && nome.trim().isEmpty()) || nome.equalsIgnoreCase("undefined")) {
+			pageRequest = PageRequest.of(page, 5, Sort.by("nome"));
+			list = usuarioRepository.findAll(pageRequest);
+		} else {
+			pageRequest = PageRequest.of(0, 5, Sort.by("nome"));
+			list = (Page<Usuario>) usuarioRepository.findUserByNamePageContainingIgnoreCase(nome, pageRequest);
+		}
+		
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/", produces = "application/json")
@@ -88,11 +144,15 @@ public class IndexController {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
 		}
 		
+		usuario.setRole(2L); //Nível de acesso de código 2.
+		
 		String senhaCriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
 		
 		usuario.setSenha(senhaCriptografada);
 		
 		Usuario usuarioSalvo = usuarioRepository.save(usuario);
+		
+//		implementacaoUserDetailsService.insereAcessoPadrao(usuarioSalvo.getId());
 		
 		return new ResponseEntity<Usuario>(usuarioSalvo, HttpStatus.OK);
 	}
@@ -120,6 +180,14 @@ public class IndexController {
 	public String delete(@PathVariable (value = "id") Long id) {
 		
 		usuarioRepository.deleteById(id);
+		
+		return "ok";
+	}
+	
+	@DeleteMapping(value="/removerTelefone/{id}", produces = "application/text")
+	public String deleteTelefone(@PathVariable("id") Long id) {
+		
+		telefoneRepository.deleteById(id);
 		
 		return "ok";
 	}

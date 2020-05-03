@@ -2,6 +2,7 @@ package curso.api.rest.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -9,19 +10,23 @@ import javax.persistence.Column;
 import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.persistence.UniqueConstraint;
-import javax.persistence.ForeignKey;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.validator.constraints.br.CPF;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 //TODO criar sequence como no model Role
@@ -48,16 +53,38 @@ public class Usuario implements UserDetails{ // esta interface já tem o Seriali
 	@OneToMany(mappedBy = "usuario", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Telefone> telefones = new ArrayList<Telefone>();
 	
-	@OneToMany(fetch = FetchType.EAGER) //um usuario pode ter muitos
-	@JoinTable(name = "usuarios_role", uniqueConstraints = @UniqueConstraint (
-			   columnNames = {"usuario_id", "role_id"}, name = "unique_role_user"),
-	joinColumns = @JoinColumn(name = "usuario_id", referencedColumnName = "id", table = "usuario", unique = false,
-	foreignKey = @ForeignKey(name = "usuario_fk", value = ConstraintMode.CONSTRAINT)),
+	//Esta é a implementação origina do curso, esta errada, a abaixo e a correção de um aluno
+//	@OneToMany(fetch = FetchType.EAGER) //um usuario pode ter muitos
+//	@JoinTable(name = "usuarios_role", uniqueConstraints = @UniqueConstraint (
+//			   columnNames = {"usuario_id", "role_id"}, name = "unique_role_user"),
+//	joinColumns = @JoinColumn(name = "usuario_id", referencedColumnName = "id", table = "usuario", unique = false,
+//	foreignKey = @ForeignKey(name = "usuario_fk", value = ConstraintMode.CONSTRAINT)),
+//	
+//			inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", table = "role", unique = false, updatable = false,
+//			foreignKey = @ForeignKey (name = "role_fk", value = ConstraintMode.CONSTRAINT)))
 	
-			inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", table = "role", unique = false, updatable = false,
-			foreignKey = @ForeignKey (name = "role_fk", value = ConstraintMode.CONSTRAINT)))
+	
+	@ManyToMany(fetch = FetchType.EAGER) 
+
+	@JoinTable(name = "usuarios_role", joinColumns = @JoinColumn(name = "usuario_id", referencedColumnName = "id", 
+	table = "usuario", unique = false, foreignKey = @ForeignKey(name = "usuario_fk", value = ConstraintMode.CONSTRAINT)), 
+	inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id", table = "role", unique = false, updatable = false,
+	foreignKey = @ForeignKey(name = "role_fk", value = ConstraintMode.CONSTRAINT)))   
 	private List<Role> roles = new ArrayList<Role>(); /*os papeis ou acessos*/
 
+	@JsonFormat(pattern="dd/MM/yyyy") //como retorna para o json
+	@Temporal(TemporalType.DATE) //Define tipo data no banco de dados
+	@DateTimeFormat(iso = ISO.DATE, pattern = "dd/MM/yyyy") //como grava no banco
+	private Date dataNascimento;
+	
+	public void setDataNascimento(Date dataNascimento) {
+		this.dataNascimento = dataNascimento;
+	}
+	
+	public Date getDataNascimento() {
+		return dataNascimento;
+	}
+	
 	public void setCpf(String cpf) {
 		this.cpf = cpf;
 	}
@@ -130,10 +157,16 @@ public class Usuario implements UserDetails{ // esta interface já tem o Seriali
 			return false;
 		return true;
 	}
+	
+	public void setRole(Long id) {
+		Role role = new Role();
+		role.setId(id);
+		roles.add(role);
+	}
 
 	/*São os acessos do usuário, Objetos Role ex. ROLE_ADMIN, ROLE_VISITANTE*/
 	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
+	public Collection<Role> getAuthorities() {
 		return roles;
 	}
 
